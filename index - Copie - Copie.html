@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>EVOLUTION SPATIO-TEMPORELLE DES TAUX D'ERREUR PAR IRIS</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0; padding: 0;
+      font-family: Arial, sans-serif;
+      background: #f0f0f0;
+    }
+    #app {
+      height: 100vh;
+      width: 100vw;
+      display: flex;
+      flex-direction: column;
+      background: #fff;
+      box-sizing: border-box;
+      padding: 10px;
+    }
+    h3 {
+      margin: 0 0 10px 0;
+      flex-shrink: 0;
+      text-align: center;
+    }
+    #controls {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+      flex-shrink: 0;
+      justify-content: center;
+    }
+    select, button, input {
+      padding: 5px;
+      font-size: 14px;
+    }
+    #content {
+      flex: 1 1 auto;
+      display: flex;
+      gap: 15px;
+      height: auto;
+      align-items: stretch;
+    }
+    #mapContainer {
+      flex: 1 1 60%;
+      border: 1px solid #ccc;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+    #map {
+      flex-grow: 1;
+      width: 100%;
+      height: 100%;
+    }
+    #rightPanel {
+      flex: 1 1 40%;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      height: 100%;
+    }
+    #legend {
+      font-size: 14px;
+      border: 1px solid #ccc;
+      padding: 8px;
+      background: #fafafa;
+      height: 60px;
+      overflow-x: auto;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    #graph {
+      flex-grow: 1;
+      border: 1px solid #ccc;
+      background: #fff;
+    }
+    #tooltip {
+      position: absolute;
+      pointer-events: none;
+      background: rgba(255,255,255,0.9);
+      border: 1px solid #ccc;
+      padding: 5px 8px;
+      border-radius: 4px;
+      font-size: 13px;
+      box-shadow: 1px 1px 5px rgba(0,0,0,0.3);
+      opacity: 0;
+      transition: opacity 0.2s;
+      white-space: nowrap;
+    }
+  </style>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+<body>
+  <div id="app">
+    <h3>EVOLUTION SPATIO-TEMPORELLE DES TAUX D'ERREUR PAR IRIS</h3>
+    <div id="controls">
+      <button data-url="https://raw.githubusercontent.com/AnicetYAO225/CarteSUEZ/main/GeoNimes.geojson">Nîmes</button>
+      <button data-url="https://raw.githubusercontent.com/AnicetYAO225/CarteSUEZ/main/GeoMonto.geojson">Montauban</button>
+      <button data-url="https://raw.githubusercontent.com/AnicetYAO225/CarteSUEZ/main/Orleans-inter2.geojson">Orléans</button>
+      <button data-url="https://raw.githubusercontent.com/AnicetYAO225/CarteSUEZ/main/Dij-inter2.geojson">Dijon</button>
+      <label>IRIS:
+        <select id="irisSelect"><option value="all">Tous</option></select>
+      </label>
+      <button id="playBtn">▶️ Play</button>
+      <input type="range" id="slider" min="0" value="0"/>
+      <span id="dateLabel"></span>
+    </div>
+
+    <div id="content">
+      <div id="mapContainer">
+        <div id="map"></div>
+      </div>
+      <div id="rightPanel">
+        <div id="legend"></div>
+        <svg id="graph"></svg>
+      </div>
+    </div>
+  </div>
+
+  <div id="tooltip"></div>
+
+  <script>
+    const animationDuration = 2000;
+
+    const map = L.map('map').setView([43.83, 4.35], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+
+    const sel = document.getElementById('irisSelect');
+    const btn = document.getElementById('playBtn');
+    const sl = document.getElementById('slider');
+    const lbl = document.getElementById('dateLabel');
+    const legendDiv = document.getElementById('legend');
+    const svg = d3.select('#graph');
+    const tooltip = d3.select('#tooltip');
+
+    let dataGeo = null, curLayer = null, dates = [], cur = 0, timer = null;
+
+    function loadData(url) {
+      if(timer) {
+        clearInterval(timer);
+        timer = null;
+        btn.textContent = '▶️ Play';
+        sl.disabled = false;
+      }
+      sel.innerHTML = '<option value="all">Tous</option>';
+      cur = 0;
+      sl.value = 0;
+      lbl.textContent = '';
+      if(curLayer) {
+        curLayer.remove();
+        curLayer = null;
+      }
+      dataGeo = null;
+      dates = [];
+
+      fetch(url)
+        .then(r => {
+          if (!r.ok) throw new Error('Erreur chargement fichier: ' + url);
+          return r.json();
+        })
+        .then(geo => {
+          dataGeo = geo;
+          dates = Array.from(new Set(geo.features.map(f => f.properties.Date))).sort();
+          sl.max = dates.length - 1;
+          lbl.textContent = dates.length > 0 ? dates[0] : '';
+
+          const irisList = Array.from(new Set(geo.features.map(f => f.properties.NOM_IRIS))).sort();
+          irisList.forEach(v => {
+            const o = document.createElement('option');
+            o.value = o.textContent = v;
+            sel.appendChild(o);
+          });
+
+          if(curLayer) curLayer.remove();
+          curLayer = L.geoJSON(dataGeo, {
+            style: {
+              color: "#3388ff",
+              weight: 1,
+              fillOpacity: 0.1
+            }
+          }).addTo(map);
+
+          map.fitBounds(curLayer.getBounds(), { padding: [40, 40] });
+          updateAll();
+        })
+        .catch(e => {
+          alert(e.message);
+          console.error(e);
+        });
+    }
+
+    function updateAll() {
+      if (!dataGeo) return;
+      const date = dates[cur];
+      lbl.textContent = date;
+      const selI = sel.value;
+
+      let filtered, min, max;
+
+      if (selI === 'all') {
+        filtered = dataGeo.features.filter(f => f.properties.Date === date);
+        const vals = filtered.map(f => f.properties.Taux_Erreu);
+        min = Math.min(...vals);
+        max = Math.max(...vals);
+      } else {
+        filtered = dataGeo.features.filter(f =>
+          f.properties.Date === date && f.properties.NOM_IRIS === selI
+        );
+        const irisAllDates = dataGeo.features.filter(f => f.properties.NOM_IRIS === selI);
+        const vals = irisAllDates.map(f => f.properties.Taux_Erreu);
+        min = Math.min(...vals);
+        max = Math.max(...vals);
+      }
+
+      const color = d3.scaleSequential(d3.interpolateReds).domain([min, max]);
+
+      if (curLayer) curLayer.remove();
+      curLayer = L.geoJSON(filtered, {
+        style: f => ({
+          fillColor: color(f.properties.Taux_Erreu),
+          weight: 2,
+          color: '#000',
+          fillOpacity: 0.7
+        }),
+        onEachFeature: (f, l) => {
+          l.bindPopup(`${f.properties.NOM_IRIS}<br>${date}<br>${f.properties.Taux_Erreu.toFixed(2)}%`);
+        }
+      }).addTo(map);
+
+      if (selI !== 'all' && filtered.length > 0) {
+        const bounds = curLayer.getBounds();
+        map.fitBounds(bounds, { padding: [30, 30] });
+      }
+
+      renderLegend(color, min, max);
+      renderChart(selI);
+    }
+
+    function renderLegend(scale, m, M) {
+      legendDiv.innerHTML = '<b>Taux d\'erreur (%)</b><br>' +
+        d3.range(6).map(i => Math.round(m + (i / 5) * (M - m)))
+        .map(v => {
+          const c = scale(v);
+          return `<div style="display:inline-block;width:25px;height:10px;background:${c};margin:2px;"></div>${v}% `;
+        }).join('');
+    }
+
+    function renderChart(iris) {
+      svg.selectAll('*').remove();
+
+      let arr;
+      if (iris === 'all') {
+        arr = dates.map(date => {
+          const vals = dataGeo.features
+            .filter(f => f.properties.Date === date)
+            .map(f => f.properties.Taux_Erreu);
+          return { date, taux: d3.mean(vals) };
+        });
+      } else {
+        arr = dataGeo.features
+          .filter(f => f.properties.NOM_IRIS === iris)
+          .sort((a, b) => a.properties.Date.localeCompare(b.properties.Date))
+          .map(f => ({ date: f.properties.Date, taux: f.properties.Taux_Erreu }));
+      }
+
+      const [w, h] = [svg.node().clientWidth, svg.node().clientHeight];
+      const mrg = { t: 20, r: 20, b: 50, l: 50 };
+
+      const x = d3.scalePoint().domain(arr.map(d => d.date)).range([mrg.l, w - mrg.r]);
+      const y = d3.scaleLinear().domain([0, d3.max(arr, d => d.taux)]).nice().range([h - mrg.b, mrg.t]);
+
+      const line = d3.line()
+        .x(d => x(d.date))
+        .y(d => y(d.taux));
+
+      const path = svg.append('path')
+        .datum(arr)
+        .attr('fill', 'none')
+        .attr('stroke', '#d33')
+        .attr('stroke-width', 2)
+        .attr('d', line);
+
+      const totalLength = path.node().getTotalLength();
+
+      path
+        .attr('stroke-dasharray', totalLength + ' ' + totalLength)
+        .attr('stroke-dashoffset', totalLength)
+        .transition()
+        .duration(animationDuration)
+        .ease(d3.easeLinear)
+        .attr('stroke-dashoffset', 0);
+
+      arr.forEach((d, i) => {
+        svg.append('circle')
+          .attr('cx', x(d.date))
+          .attr('cy', y(d.taux))
+          .attr('r', 5)
+          .attr('fill', '#d33')
+          .attr('opacity', 0)
+          .style('cursor', 'pointer')
+          .on('mouseover', (event) => {
+            tooltip.style('opacity', 1)
+              .html(`<strong>Date:</strong> ${d.date}<br><strong>Taux:</strong> ${d.taux.toFixed(2)}%`)
+              .style('left', (event.pageX + 10) + 'px')
+              .style('top', (event.pageY - 28) + 'px');
+          })
+          .on('mouseout', () => {
+            tooltip.style('opacity', 0);
+          })
+          .transition()
+          .delay(animationDuration * (i / arr.length))
+          .duration(200)
+          .attr('opacity', 1);
+      });
+
+      const xAxis = d3.axisBottom(x);
+      const yAxis = d3.axisLeft(y).ticks(6);
+
+      svg.append('g')
+        .attr('transform', `translate(0,${h - mrg.b})`)
+        .call(xAxis)
+        .selectAll('text')
+        .attr('transform', 'rotate(-40)')
+        .style('text-anchor', 'end');
+
+      svg.append('g')
+        .attr('transform', `translate(${mrg.l},0)`)
+        .call(yAxis);
+    }
+
+    document.querySelectorAll('#controls button[data-url]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        loadData(btn.getAttribute('data-url'));
+      });
+    });
+
+    sel.addEventListener('change', () => {
+      cur = 0;
+      sl.value = 0;
+      updateAll();
+    });
+
+    sl.addEventListener('input', () => {
+      cur = +sl.value;
+      updateAll();
+    });
+
+    btn.addEventListener('click', () => {
+      if (!timer) {
+        btn.textContent = '⏸️ Pause';
+        sl.disabled = true;
+        timer = setInterval(() => {
+          if (cur >= dates.length - 1) {
+            clearInterval(timer);
+            timer = null;
+            btn.textContent = '▶️ Play';
+            sl.disabled = false;
+            return;
+          }
+          cur++;
+          sl.value = cur;
+          updateAll();
+        }, animationDuration);
+      } else {
+        clearInterval(timer);
+        timer = null;
+        btn.textContent = '▶️ Play';
+        sl.disabled = false;
+      }
+    });
+
+    loadData('https://raw.githubusercontent.com/AnicetYAO225/CarteSUEZ/main/GeoNimes.geojson');
+  </script>
+</body>
+</html>
