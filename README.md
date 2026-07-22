@@ -1,4 +1,4 @@
-# CarteSUEZ – Cartographie interactive des déchets à l'échelle des IRIS
+# CarteSUEZ - Cartographie interactive des déchets à l'échelle des IRIS
 
 ## Présentation du projet
 
