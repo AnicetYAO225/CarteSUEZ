@@ -1,6 +1,6 @@
 # CarteSUEZ – Cartographie interactive des déchets à l'échelle des IRIS
 
-## 📌 Présentation du projet
+## Présentation du projet
 
 Ce dépôt GitHub contient les données géographiques et les fichiers nécessaires à la réalisation d'une **carte interactive consacrée à l'analyse territoriale des déchets à l'échelle des IRIS**.
 
@@ -10,7 +10,7 @@ La carte interactive s'appuie sur des données géographiques au format **GeoJSO
 
 ---
 
-## 🎯 Objectifs
+## Objectifs
 
 La carte a pour principaux objectifs de :
 
@@ -23,7 +23,7 @@ La carte a pour principaux objectifs de :
 
 ---
 
-## 🗺️ Territoires étudiés
+## Territoires étudiés
 
 Le dépôt contient actuellement des données géographiques relatives à plusieurs territoires métropolitains, notamment :
 
@@ -38,7 +38,7 @@ Les fichiers GeoJSON permettent de représenter les différents périmètres gé
 
 ---
 
-## 📊 Données géographiques
+## Données géographiques
 
 Les données géographiques sont principalement stockées au format **GeoJSON**.
 
@@ -52,7 +52,7 @@ Les différents fichiers GeoJSON présents dans le dépôt sont utilisés comme 
 
 ---
 
-## 💻 Structure du dépôt
+## Structure du dépôt
 
 L'organisation actuelle du dépôt comprend notamment :
 
@@ -95,7 +95,7 @@ CarteSUEZ/
 
 ---
 
-## 🚀 Utilisation
+## Utilisation
 
 Pour consulter la carte interactive en local :
 
@@ -125,7 +125,7 @@ Pour une utilisation optimale, il est recommandé de servir le projet via un **s
 
 ---
 
-## 🛠️ Technologies utilisées
+## Technologies utilisées
 
 Le projet repose principalement sur des technologies web et des formats de données géographiques :
 
@@ -136,7 +136,7 @@ Le projet repose principalement sur des technologies web et des formats de donn�
 
 ---
 
-## 🔎 Méthodologie
+## Méthodologie
 
 Le principe général du projet consiste à associer des données statistiques ou thématiques relatives aux déchets à des entités géographiques correspondant aux territoires étudiés.
 
@@ -151,7 +151,7 @@ Cette approche permet de compléter l'analyse du mémoire par une **lecture spat
 
 ---
 
-## 📚 Sources des données
+## Sources des données
 
 Les données utilisées dans le cadre de ce projet proviennent de différentes sources géographiques et statistiques mobilisées pour les besoins du mémoire.
 
@@ -167,7 +167,7 @@ Pour chaque donnée intégrée au projet, il est recommandé de préciser :
 
 ---
 
-## 🎓 Contexte académique
+## Contexte académique
 
 Ce projet cartographique a été développé dans le cadre d'un **mémoire de recherche portant sur la problématique des déchets et leur répartition territoriale**.
 
@@ -177,7 +177,7 @@ Elle a vocation à faciliter la **visualisation, l'exploration et la comparaison
 
 ---
 
-## 👤 Auteur
+## Auteur
 
 **Anicet YAO**
 
@@ -187,7 +187,7 @@ GitHub : [AnicetYAO225](https://github.com/AnicetYAO225)
 
 ---
 
-## 📄 Licence
+## Licence
 
 Sauf indication contraire, les données et ressources présentes dans ce dépôt sont destinées à un usage académique et de recherche.
 
@@ -195,7 +195,7 @@ Les conditions de réutilisation des données géographiques restent soumises au
 
 ---
 
-## 🔗 Dépôt du projet
+## Dépôt du projet
 
 Le code source et les données géographiques sont disponibles sur GitHub :
 
