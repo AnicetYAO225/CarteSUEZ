@@ -149,56 +149,5 @@ Les données sont ensuite intégrées dans une interface cartographique interact
 
 Cette approche permet de compléter l'analyse du mémoire par une **lecture spatiale et interactive des données**.
 
----
 
-## Sources des données
 
-Les données utilisées dans le cadre de ce projet proviennent de différentes sources géographiques et statistiques mobilisées pour les besoins du mémoire.
-
-Les sources et références précises des données devront être documentées et complétées en fonction des jeux de données utilisés.
-
-Pour chaque donnée intégrée au projet, il est recommandé de préciser :
-
-* le nom de la source ;
-* l'organisme producteur ;
-* l'année de production ou de mise à jour ;
-* l'échelle géographique ;
-* la licence ou les conditions de réutilisation.
-
----
-
-## Contexte académique
-
-Ce projet cartographique a été développé dans le cadre d'un **mémoire de recherche portant sur la problématique des déchets et leur répartition territoriale**.
-
-La carte interactive constitue un outil d'appui à l'analyse permettant de mieux comprendre les disparités spatiales observées entre les différents territoires étudiés.
-
-Elle a vocation à faciliter la **visualisation, l'exploration et la comparaison des données géographiques** mobilisées dans le cadre du travail de recherche.
-
----
-
-## Auteur
-
-**Anicet YAO**
-
-Projet réalisé dans le cadre d'un travail de mémoire.
-
-GitHub : [AnicetYAO225](https://github.com/AnicetYAO225)
-
----
-
-## Licence
-
-Sauf indication contraire, les données et ressources présentes dans ce dépôt sont destinées à un usage académique et de recherche.
-
-Les conditions de réutilisation des données géographiques restent soumises aux licences et conditions d'utilisation définies par leurs organismes producteurs respectifs.
-
----
-
-## Dépôt du projet
-
-Le code source et les données géographiques sont disponibles sur GitHub :
-
-**CarteSUEZ – Cartographie interactive des déchets à l'échelle des IRIS**
-
-https://github.com/AnicetYAO225/CarteSUEZ
